@@ -1,0 +1,6 @@
+applications:
+- name: mainframe-ops-bot
+  command: npm start
+  path: .
+  memory: 512M
+  instances: 1
