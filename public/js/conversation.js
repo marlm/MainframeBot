@@ -3,25 +3,25 @@
 /* eslint no-unused-vars: "off" */
 /* global Api: true, Common: true*/
 
-var ConversationPanel = (function () {
+var ConversationPanel = (function() {
   var settings = {
     selectors: {
       chatBox: '#scrollingChat',
       fromUser: '.from-user',
       fromWatson: '.from-watson',
-      latest: '.latest'
+      latest: '.latest',
     },
     authorTypes: {
       user: 'user',
-      watson: 'watson'
-    }
+      watson: 'watson',
+    },
   };
 
   // Publicly accessible methods defined
   return {
     init: init,
     inputKeyDown: inputKeyDown,
-    sendMessage: sendMessage
+    sendMessage: sendMessage,
   };
 
   // Initialize the module
@@ -36,18 +36,18 @@ var ConversationPanel = (function () {
   // This causes the displayMessage function to be called when messages are sent / received
   function chatUpdateSetup() {
     var currentRequestPayloadSetter = Api.setRequestPayload;
-    Api.setRequestPayload = function (newPayloadStr) {
+    Api.setRequestPayload = function(newPayloadStr) {
       currentRequestPayloadSetter.call(Api, newPayloadStr);
       displayMessage(JSON.parse(newPayloadStr), settings.authorTypes.user);
     };
 
     var currentResponsePayloadSetter = Api.setResponsePayload;
-    Api.setResponsePayload = function (newPayloadStr) {
+    Api.setResponsePayload = function(newPayloadStr) {
       currentResponsePayloadSetter.call(Api, newPayloadStr);
       displayMessage(JSON.parse(newPayloadStr), settings.authorTypes.watson);
     };
 
-    Api.setErrorPayload = function (newPayload) {
+    Api.setErrorPayload = function(newPayload) {
       displayMessage(newPayload, settings.authorTypes.watson);
     };
   }
@@ -67,11 +67,13 @@ var ConversationPanel = (function () {
     // If no dummy input box exists, create one
     if (dummy === null) {
       var dummyJson = {
-        'tagName': 'div',
-        'attributes': [{
-          'name': 'id',
-          'value': 'textInputDummy'
-        }]
+        tagName: 'div',
+        attributes: [
+          {
+            name: 'id',
+            value: 'textInputDummy',
+          },
+        ],
       };
 
       dummy = Common.buildDomElement(dummyJson);
@@ -89,24 +91,38 @@ var ConversationPanel = (function () {
         // the visible input box to match it (thus extending the underline)
         input.classList.add('underline');
         var txtNode = document.createTextNode(input.value);
-        ['font-size', 'font-style', 'font-weight', 'font-family', 'line-height',
-          'text-transform', 'letter-spacing'
-        ].forEach(function (index) {
-          dummy.style[index] = window.getComputedStyle(input, null).getPropertyValue(index);
+        [
+          'font-size',
+          'font-style',
+          'font-weight',
+          'font-family',
+          'line-height',
+          'text-transform',
+          'letter-spacing',
+        ].forEach(function(index) {
+          dummy.style[index] = window
+            .getComputedStyle(input, null)
+            .getPropertyValue(index);
         });
         dummy.textContent = txtNode.textContent;
 
         var padding = 0;
         var htmlElem = document.getElementsByTagName('html')[0];
-        var currentFontSize = parseInt(window.getComputedStyle(htmlElem, null).getPropertyValue('font-size'), 10);
+        var currentFontSize = parseInt(
+          window.getComputedStyle(htmlElem, null).getPropertyValue('font-size'),
+          10
+        );
         if (currentFontSize) {
-          padding = Math.floor((currentFontSize - minFontSize) / (maxFontSize - minFontSize) *
-            (maxPadding - minPadding) + minPadding);
+          padding = Math.floor(
+            ((currentFontSize - minFontSize) / (maxFontSize - minFontSize)) *
+              (maxPadding - minPadding) +
+              minPadding
+          );
         } else {
           padding = maxPadding;
         }
 
-        var widthValue = (dummy.offsetWidth + padding) + 'px';
+        var widthValue = dummy.offsetWidth + padding + 'px';
         input.setAttribute('style', 'width:' + widthValue);
         input.style.width = widthValue;
       }
@@ -124,15 +140,17 @@ var ConversationPanel = (function () {
   function displayMessage(newPayload, typeValue) {
     var isUser = isUserMessage(typeValue);
     //var textExists = newPayload.generic;
-    if ((newPayload.output && newPayload.output.generic) ||  newPayload.input){
+    if ((newPayload.output && newPayload.output.generic) || newPayload.input) {
       // Create new message generic elements
       var responses = buildMessageDomElements(newPayload, isUser);
       var chatBoxElement = document.querySelector(settings.selectors.chatBox);
-      var previousLatest = chatBoxElement.querySelectorAll((isUser ? settings.selectors.fromUser : settings.selectors.fromWatson) +
-        settings.selectors.latest);
+      var previousLatest = chatBoxElement.querySelectorAll(
+        (isUser ? settings.selectors.fromUser : settings.selectors.fromWatson) +
+          settings.selectors.latest
+      );
       // Previous "latest" message is no longer the most recent
       if (previousLatest) {
-        Common.listForEach(previousLatest, function (element) {
+        Common.listForEach(previousLatest, function(element) {
           element.classList.remove('latest');
         });
       }
@@ -150,7 +168,7 @@ var ConversationPanel = (function () {
         // Class to start fade in animation
         currentDiv.classList.add('load');
         // Move chat to the most recent messages when new messages are added
-        setTimeout(function () {
+        setTimeout(function() {
           // wait a sec before scrolling
           scrollToChatBottom();
         }, 1000);
@@ -160,7 +178,7 @@ var ConversationPanel = (function () {
         if (res.typing) {
           userTypringField.innerHTML = 'Watson Assistant Typing...';
         }
-        setTimeout(function () {
+        setTimeout(function() {
           userTypringField.innerHTML = '';
           setResponse(responses, isUser, chatBoxElement, index + 1, isTop);
         }, res.time);
@@ -170,26 +188,36 @@ var ConversationPanel = (function () {
 
   // Constructs new DOM element from a message
   function getDivObject(res, isUser, isTop) {
-    var classes = [(isUser ? 'from-user' : 'from-watson'), 'latest', (isTop ? 'top' : 'sub')];
+    var classes = [
+      isUser ? 'from-user' : 'from-watson',
+      'latest',
+      isTop ? 'top' : 'sub',
+    ];
     var messageJson = {
       // <div class='segments'>
-      'tagName': 'div',
-      'classNames': ['segments'],
-      'children': [{
-        // <div class='from-user/from-watson latest'>
-        'tagName': 'div',
-        'classNames': classes,
-        'children': [{
-          // <div class='message-inner'>
-          'tagName': 'div',
-          'classNames': ['message-inner'],
-          'children': [{
-            // <p>{messageText}</p>
-            'tagName': 'p',
-            'text': res.innerhtml
-          }]
-        }]
-      }]
+      tagName: 'div',
+      classNames: ['segments'],
+      children: [
+        {
+          // <div class='from-user/from-watson latest'>
+          tagName: 'div',
+          classNames: classes,
+          children: [
+            {
+              // <div class='message-inner'>
+              tagName: 'div',
+              classNames: ['message-inner'],
+              children: [
+                {
+                  // <p>{messageText}</p>
+                  tagName: 'p',
+                  text: res.innerhtml,
+                },
+              ],
+            },
+          ],
+        },
+      ],
     };
     return Common.buildDomElement(messageJson);
   }
@@ -214,8 +242,12 @@ var ConversationPanel = (function () {
         list = '<ul>';
         for (i = 0; i < optionsList.length; i++) {
           if (optionsList[i].value) {
-            list += '<li><div class="options-list" onclick="ConversationPanel.sendMessage(\'' +
-            optionsList[i].value.input.text + '\');" >' + optionsList[i].label + '</div></li>';
+            list +=
+              '<li><div class="options-list" onclick="ConversationPanel.sendMessage(\'' +
+              optionsList[i].value.input.text +
+              '\');" >' +
+              optionsList[i].label +
+              '</div></li>';
           }
         }
         list += '</ul>';
@@ -223,8 +255,12 @@ var ConversationPanel = (function () {
         list = '<br>';
         for (i = 0; i < optionsList.length; i++) {
           if (optionsList[i].value) {
-            var item = '<div class="options-button" onclick="ConversationPanel.sendMessage(\'' +
-              optionsList[i].value.input.text + '\');" >' + optionsList[i].label + '</div>';
+            var item =
+              '<div class="options-button" onclick="ConversationPanel.sendMessage(\'' +
+              optionsList[i].value.input.text +
+              '\');" >' +
+              optionsList[i].label +
+              '</div>';
             list += item;
           }
         }
@@ -234,7 +270,8 @@ var ConversationPanel = (function () {
   }
 
   function getResponse(responses, gen) {
-    var title = '', description = '';
+    var title = '',
+      description = '';
     if (gen.hasOwnProperty('title')) {
       title = gen.title;
     }
@@ -245,18 +282,18 @@ var ConversationPanel = (function () {
       var img = '<div><img src="' + gen.source + '" width="300"></div>';
       responses.push({
         type: gen.response_type,
-        innerhtml: title + description + img
+        innerhtml: title + description + img,
       });
     } else if (gen.response_type === 'text') {
       responses.push({
         type: gen.response_type,
-        innerhtml: gen.text
+        innerhtml: gen.text,
       });
     } else if (gen.response_type === 'pause') {
       responses.push({
         type: gen.response_type,
         time: gen.time,
-        typing: gen.typing
+        typing: gen.typing,
       });
     } else if (gen.response_type === 'option') {
       var preference = 'text';
@@ -267,7 +304,7 @@ var ConversationPanel = (function () {
       var list = getOptions(gen.options, preference);
       responses.push({
         type: gen.response_type,
-        innerhtml: title + description + list
+        innerhtml: title + description + list,
       });
     }
   }
@@ -283,19 +320,19 @@ var ConversationPanel = (function () {
 
     if (newPayload.hasOwnProperty('output')) {
       if (newPayload.output.hasOwnProperty('generic')) {
-
         var generic = newPayload.output.generic;
 
-        generic.forEach(function (gen) {
+        generic.forEach(function(gen) {
           getResponse(responses, gen);
         });
       }
     } else if (newPayload.hasOwnProperty('input')) {
       var input = '';
-      textArray.forEach(function (msg) {
+      textArray.forEach(function(msg) {
         input += msg + ' ';
       });
-      input = input.trim()
+      input = input
+        .trim()
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
@@ -303,7 +340,7 @@ var ConversationPanel = (function () {
       if (input.length !== 0) {
         responses.push({
           type: 'text',
-          innerhtml: input
+          innerhtml: input,
         });
       }
     }
@@ -331,4 +368,4 @@ var ConversationPanel = (function () {
       Common.fireEvent(inputBox, 'input');
     }
   }
-}());
+})();

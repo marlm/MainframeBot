@@ -28,15 +28,14 @@ var Api = (function() {
     setResponsePayload: function(newPayloadStr) {
       responsePayload = JSON.parse(newPayloadStr);
     },
-    setErrorPayload: function() {
-    }
+    setErrorPayload: function() {},
   };
 
   function getSessionId(callback) {
     var http = new XMLHttpRequest();
     http.open('GET', sessionEndpoint, true);
     http.setRequestHeader('Content-type', 'application/json');
-    http.onreadystatechange = function () {
+    http.onreadystatechange = function() {
       if (http.readyState === XMLHttpRequest.DONE) {
         var res = JSON.parse(http.responseText);
         sessionId = res.session_id;
@@ -46,12 +45,11 @@ var Api = (function() {
     http.send();
   }
 
-
   // Send a message request to the server
   function sendRequest(text) {
     // Build request payload
     var payloadToWatson = {
-      session_id: sessionId
+      session_id: sessionId,
     };
 
     payloadToWatson.input = {
@@ -59,24 +57,31 @@ var Api = (function() {
       text: text,
     };
 
-
     // Built http request
     var http = new XMLHttpRequest();
     http.open('POST', messageEndpoint, true);
     http.setRequestHeader('Content-type', 'application/json');
     http.onreadystatechange = function() {
-      if (http.readyState === XMLHttpRequest.DONE && http.status === 200 && http.responseText) {
+      if (
+        http.readyState === XMLHttpRequest.DONE &&
+        http.status === 200 &&
+        http.responseText
+      ) {
         Api.setResponsePayload(http.responseText);
-      } else if (http.readyState === XMLHttpRequest.DONE && http.status !== 200) {
+      } else if (
+        http.readyState === XMLHttpRequest.DONE &&
+        http.status !== 200
+      ) {
         Api.setErrorPayload({
-          'output': {
-            'generic': [
+          output: {
+            generic: [
               {
-                'response_type': 'text',
-                'text': 'I\'m having trouble connecting to the server, please refresh the page'
-              }
+                response_type: 'text',
+                text:
+                  "I'm having trouble connecting to the server, please refresh the page",
+              },
             ],
-          }
+          },
         });
       }
     };
@@ -91,4 +96,4 @@ var Api = (function() {
     // Send request
     http.send(params);
   }
-}());
+})();

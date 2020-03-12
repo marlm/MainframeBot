@@ -9,18 +9,18 @@ var PayloadPanel = (function() {
       payloadColumn: '#payload-column',
       payloadInitial: '#payload-initial-message',
       payloadRequest: '#payload-request',
-      payloadResponse: '#payload-response'
+      payloadResponse: '#payload-response',
     },
     payloadTypes: {
       request: 'request',
-      response: 'response'
-    }
+      response: 'response',
+    },
   };
 
   // Publicly accessible methods defined
   return {
     init: init,
-    togglePanel: togglePanel
+    togglePanel: togglePanel,
   };
 
   // Initialize the module
@@ -33,7 +33,9 @@ var PayloadPanel = (function() {
   // hidden (default for small/mobile resolution apps)
   // full width (regardless of screen size)
   function togglePanel(event, element) {
-    var payloadColumn = document.querySelector(settings.selectors.payloadColumn);
+    var payloadColumn = document.querySelector(
+      settings.selectors.payloadColumn
+    );
     if (element.classList.contains('full')) {
       element.classList.remove('full');
       payloadColumn.classList.remove('full');
@@ -65,8 +67,11 @@ var PayloadPanel = (function() {
     if (isRequest !== null) {
       // Create new payload DOM element
       var payloadDiv = buildPayloadDomElement(isRequest);
-      var payloadElement = document.querySelector(isRequest
-        ? settings.selectors.payloadRequest : settings.selectors.payloadResponse);
+      var payloadElement = document.querySelector(
+        isRequest
+          ? settings.selectors.payloadRequest
+          : settings.selectors.payloadResponse
+      );
       // Clear out payload holder element
       while (payloadElement.lastChild) {
         payloadElement.removeChild(payloadElement.lastChild);
@@ -75,7 +80,9 @@ var PayloadPanel = (function() {
       payloadElement.appendChild(payloadDiv);
       // Set the horizontal rule to show (if request and response payloads both exist)
       // or to hide (otherwise)
-      var payloadInitial = document.querySelector(settings.selectors.payloadInitial);
+      var payloadInitial = document.querySelector(
+        settings.selectors.payloadInitial
+      );
       if (Api.getRequestPayload() || Api.getResponsePayload()) {
         payloadInitial.classList.add('hide');
       }
@@ -96,32 +103,41 @@ var PayloadPanel = (function() {
 
   // Constructs new DOM element to use in displaying the payload
   function buildPayloadDomElement(isRequest) {
-    var payloadPrettyString = jsonPrettyPrint(isRequest
-      ? Api.getRequestPayload() : Api.getResponsePayload());
+    var payloadPrettyString = jsonPrettyPrint(
+      isRequest ? Api.getRequestPayload() : Api.getResponsePayload()
+    );
 
     var payloadJson = {
-      'tagName': 'div',
-      'children': [{
-        // <div class='header-text'>
-        'tagName': 'div',
-        'text': isRequest ? 'User input' : 'Watson understands',
-        'classNames': ['header-text']
-      }, {
-        // <div class='code-line responsive-columns-wrapper'>
-        'tagName': 'div',
-        'classNames': ['code-line', 'responsive-columns-wrapper'],
-        'children': [{
-          // <div class='line-numbers'>
-          'tagName': 'pre',
-          'text': createLineNumberString((payloadPrettyString.match(/\n/g) || []).length + 1),
-          'classNames': ['line-numbers']
-        }, {
-          // <div class='payload-text responsive-column'>
-          'tagName': 'pre',
-          'classNames': ['payload-text', 'responsive-column'],
-          'html': payloadPrettyString
-        }]
-      }]
+      tagName: 'div',
+      children: [
+        {
+          // <div class='header-text'>
+          tagName: 'div',
+          text: isRequest ? 'User input' : 'Watson understands',
+          classNames: ['header-text'],
+        },
+        {
+          // <div class='code-line responsive-columns-wrapper'>
+          tagName: 'div',
+          classNames: ['code-line', 'responsive-columns-wrapper'],
+          children: [
+            {
+              // <div class='line-numbers'>
+              tagName: 'pre',
+              text: createLineNumberString(
+                (payloadPrettyString.match(/\n/g) || []).length + 1
+              ),
+              classNames: ['line-numbers'],
+            },
+            {
+              // <div class='payload-text responsive-column'>
+              tagName: 'pre',
+              classNames: ['payload-text', 'responsive-column'],
+              html: payloadPrettyString,
+            },
+          ],
+        },
+      ],
     };
 
     return Common.buildDomElement(payloadJson);
@@ -134,26 +150,28 @@ var PayloadPanel = (function() {
     }
     var convert = JSON.stringify(json, null, 2);
 
-    convert = convert.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(
-      />/g, '&gt;');
     convert = convert
-      .replace(
-        /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g,
-        function(match) {
-          var cls = 'number';
-          if (/^"/.test(match)) {
-            if (/:$/.test(match)) {
-              cls = 'key';
-            } else {
-              cls = 'string';
-            }
-          } else if (/true|false/.test(match)) {
-            cls = 'boolean';
-          } else if (/null/.test(match)) {
-            cls = 'null';
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    convert = convert.replace(
+      /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g,
+      function(match) {
+        var cls = 'number';
+        if (/^"/.test(match)) {
+          if (/:$/.test(match)) {
+            cls = 'key';
+          } else {
+            cls = 'string';
           }
-          return '<span class="' + cls + '">' + match + '</span>';
-        });
+        } else if (/true|false/.test(match)) {
+          cls = 'boolean';
+        } else if (/null/.test(match)) {
+          cls = 'null';
+        }
+        return '<span class="' + cls + '">' + match + '</span>';
+      }
+    );
     return convert;
   }
 
@@ -169,4 +187,4 @@ var PayloadPanel = (function() {
     }
     return lineString;
   }
-}());
+})();
